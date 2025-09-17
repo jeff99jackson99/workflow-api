@@ -392,11 +392,19 @@ def dashboard_page():
         st.subheader("📋 Kanban Statistics")
         kanban_data = dashboard_data['kanban_statistics']
         if any(kanban_data.values()):
+            # Create DataFrame for better handling
+            import pandas as pd
+            df = pd.DataFrame([
+                {'Column': k.replace('_', ' ').title(), 'Tasks': v} 
+                for k, v in kanban_data.items()
+            ])
+            
             fig = px.bar(
-                x=list(kanban_data.keys()),
-                y=list(kanban_data.values()),
+                df,
+                x='Column',
+                y='Tasks',
                 title="Tasks by Kanban Column",
-                labels={'x': 'Kanban Column', 'y': 'Number of Tasks'}
+                labels={'Column': 'Kanban Column', 'Tasks': 'Number of Tasks'}
             )
             fig.update_xaxis(tickangle=45)
             st.plotly_chart(fig, use_container_width=True)
@@ -636,39 +644,47 @@ def analytics_page():
         
         col1, col2 = st.columns(2)
         
-        with col1:
-            fig = px.bar(sprint_df, x="Sprint", y=["Total Tasks", "Completed Tasks"],
-                        title="Tasks by Sprint", barmode="group")
+        if not sprint_df.empty:
+            with col1:
+                fig = px.bar(sprint_df, x="Sprint", y=["Total Tasks", "Completed Tasks"],
+                            title="Tasks by Sprint", barmode="group")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                fig = px.bar(sprint_df, x="Sprint", y=["Total Story Points", "Completed Story Points"],
+                            title="Story Points by Sprint", barmode="group")
+                st.plotly_chart(fig, use_container_width=True)
+            
+            # Sprint completion rates
+            fig = px.line(sprint_df, x="Sprint", y="Completion Rate", 
+                         title="Sprint Completion Rate", markers=True)
+            fig.update_yaxis(tickformat=".1%")
             st.plotly_chart(fig, use_container_width=True)
-        
-        with col2:
-            fig = px.bar(sprint_df, x="Sprint", y=["Total Story Points", "Completed Story Points"],
-                        title="Story Points by Sprint", barmode="group")
-            st.plotly_chart(fig, use_container_width=True)
-        
-        # Sprint completion rates
-        fig = px.line(sprint_df, x="Sprint", y="Completion Rate", 
-                     title="Sprint Completion Rate", markers=True)
-        fig.update_yaxis(tickformat=".1%")
-        st.plotly_chart(fig, use_container_width=True)
     
     # Priority Distribution
     st.subheader("⚡ Priority Distribution")
     priority_data = dashboard_data['priority_statistics']
     
     if any(priority_data.values()):
-        fig = px.pie(
-            values=list(priority_data.values()),
-            names=[name.title() for name in priority_data.keys()],
-            title="Tasks by Priority",
-            color_discrete_map={
-                "Critical": "#dc3545",
-                "High": "#fd7e14",
-                "Medium": "#ffc107", 
-                "Low": "#28a745"
-            }
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # Filter out zero values for better visualization
+        filtered_data = {k: v for k, v in priority_data.items() if v > 0}
+        if filtered_data:
+            fig = px.pie(
+                values=list(filtered_data.values()),
+                names=[name.title() for name in filtered_data.keys()],
+                title="Tasks by Priority",
+                color_discrete_map={
+                    "Critical": "#dc3545",
+                    "High": "#fd7e14",
+                    "Medium": "#ffc107", 
+                    "Low": "#28a745"
+                }
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No priority data available")
+    else:
+        st.info("No priority data available")
     
     # Story Points Progress
     st.subheader("📊 Story Points Progress")
