@@ -637,11 +637,16 @@ def analytics_page():
     """Analytics and reporting page"""
     st.title("📈 Analytics")
     
-    # Get dashboard and sprint data
-    dashboard_data = make_api_request("/dashboard")
-    sprints_data = make_api_request("/sprints")
-    
-    if not dashboard_data:
+    try:
+        # Get dashboard and sprint data
+        dashboard_data = make_api_request("/dashboard")
+        sprints_data = make_api_request("/sprints")
+        
+        if not dashboard_data:
+            st.error("Unable to load analytics data")
+            return
+    except Exception as e:
+        st.error(f"Error loading analytics: {str(e)}")
         return
     
     # Sprint Analytics
@@ -663,46 +668,70 @@ def analytics_page():
         col1, col2 = st.columns(2)
         
         if not sprint_df.empty:
-            with col1:
-                fig = px.bar(sprint_df, x="Sprint", y=["Total Tasks", "Completed Tasks"],
-                            title="Tasks by Sprint", barmode="group")
+            try:
+                with col1:
+                    fig = px.bar(sprint_df, x="Sprint", y=["Total Tasks", "Completed Tasks"],
+                                title="Tasks by Sprint", barmode="group")
+                    st.plotly_chart(fig, use_container_width=True)
+                
+                with col2:
+                    fig = px.bar(sprint_df, x="Sprint", y=["Total Story Points", "Completed Story Points"],
+                                title="Story Points by Sprint", barmode="group")
+                    st.plotly_chart(fig, use_container_width=True)
+                
+                # Sprint completion rates
+                fig = px.line(sprint_df, x="Sprint", y="Completion Rate", 
+                             title="Sprint Completion Rate", markers=True)
+                fig.update_layout(yaxis_tickformat=".1%")
                 st.plotly_chart(fig, use_container_width=True)
-            
-            with col2:
-                fig = px.bar(sprint_df, x="Sprint", y=["Total Story Points", "Completed Story Points"],
-                            title="Story Points by Sprint", barmode="group")
-                st.plotly_chart(fig, use_container_width=True)
-            
-            # Sprint completion rates
-            fig = px.line(sprint_df, x="Sprint", y="Completion Rate", 
-                         title="Sprint Completion Rate", markers=True)
-            fig.update_yaxis(tickformat=".1%")
-            st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating sprint charts: {str(e)}")
+                # Fallback: show data as table
+                st.table(sprint_df)
+        else:
+            st.info("No sprint data available")
     
     # Priority Distribution
     st.subheader("⚡ Priority Distribution")
-    priority_data = dashboard_data['priority_statistics']
-    
-    if any(priority_data.values()):
-        # Filter out zero values for better visualization
-        filtered_data = {k: v for k, v in priority_data.items() if v > 0}
-        if filtered_data:
-            fig = px.pie(
-                values=list(filtered_data.values()),
-                names=[name.title() for name in filtered_data.keys()],
-                title="Tasks by Priority",
-                color_discrete_map={
-                    "Critical": "#dc3545",
-                    "High": "#fd7e14",
-                    "Medium": "#ffc107", 
-                    "Low": "#28a745"
-                }
-            )
-            st.plotly_chart(fig, use_container_width=True)
+    try:
+        priority_data = dashboard_data['priority_statistics']
+        
+        if any(priority_data.values()):
+            # Filter out zero values for better visualization
+            filtered_data = {k: v for k, v in priority_data.items() if v > 0}
+            if filtered_data:
+                fig = px.pie(
+                    values=list(filtered_data.values()),
+                    names=[name.title() for name in filtered_data.keys()],
+                    title="Tasks by Priority",
+                    color_discrete_map={
+                        "Critical": "#dc3545",
+                        "High": "#fd7e14",
+                        "Medium": "#ffc107", 
+                        "Low": "#28a745"
+                    }
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No priority data available")
         else:
             st.info("No priority data available")
-    else:
-        st.info("No priority data available")
+    except Exception as e:
+        st.error(f"Error creating priority chart: {str(e)}")
+        # Fallback: show priority data as metrics
+        try:
+            priority_data = dashboard_data.get('priority_statistics', {})
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Critical", priority_data.get('critical', 0))
+            with col2:
+                st.metric("High", priority_data.get('high', 0))
+            with col3:
+                st.metric("Medium", priority_data.get('medium', 0))
+            with col4:
+                st.metric("Low", priority_data.get('low', 0))
+        except:
+            st.info("Priority data unavailable")
     
     # Story Points Progress
     st.subheader("📊 Story Points Progress")
