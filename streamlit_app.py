@@ -13,7 +13,7 @@ import json
 # Page configuration
 st.set_page_config(
     page_title="Workflow Management System",
-    page_icon="📋",
+    page_icon="🔧",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -22,46 +22,141 @@ st.set_page_config(
 import os
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
-# Custom CSS for better styling
+# Custom CSS for professional styling
 st.markdown("""
 <style>
+    /* Main app background */
+    .stApp {
+        background-color: #f5f2ed;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #e8e2d5;
+    }
+    
+    /* Main content area */
+    .main .block-container {
+        background-color: #f5f2ed;
+        padding-top: 2rem;
+    }
+    
+    /* Headers */
+    h1, h2, h3 {
+        color: #5d4e37;
+        font-weight: 600;
+    }
+    
+    /* Kanban columns */
     .kanban-column {
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-radius: 10px;
+        background-color: #faf8f5;
+        border: 1px solid #d4c4a8;
+        padding: 15px;
+        border-radius: 8px;
         margin: 5px;
         min-height: 300px;
     }
+    
+    /* Task cards */
     .task-card {
-        background-color: white;
-        padding: 10px;
-        border-radius: 8px;
-        margin: 5px 0;
-        border-left: 4px solid #007bff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background-color: #ffffff;
+        padding: 12px;
+        border-radius: 6px;
+        margin: 8px 0;
+        border-left: 4px solid #8b7355;
+        box-shadow: 0 2px 4px rgba(93, 78, 55, 0.1);
+        border: 1px solid #e6dcc6;
+    }
+    
+    /* Priority-based card colors */
+    .task-card-critical {
+        border-left-color: #8b2635;
+        background-color: #fdf8f8;
     }
     .task-card-high {
-        border-left-color: #dc3545;
+        border-left-color: #a0522d;
+        background-color: #fdf9f5;
     }
     .task-card-medium {
-        border-left-color: #ffc107;
+        border-left-color: #b8860b;
+        background-color: #fffdf5;
     }
     .task-card-low {
-        border-left-color: #28a745;
+        border-left-color: #556b2f;
+        background-color: #f8fdf5;
     }
+    
+    /* Metric cards */
     .metric-card {
-        background-color: #f8f9fa;
+        background-color: #faf8f5;
+        border: 1px solid #d4c4a8;
         padding: 20px;
-        border-radius: 10px;
+        border-radius: 8px;
         text-align: center;
     }
+    
+    /* Buttons */
+    .stButton > button {
+        background-color: #8b7355;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+    }
+    
+    .stButton > button:hover {
+        background-color: #5d4e37;
+    }
+    
+    /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
         gap: 24px;
+        background-color: #faf8f5;
     }
+    
     .stTabs [data-baseweb="tab"] {
         height: 50px;
         padding-left: 20px;
         padding-right: 20px;
+        background-color: #f5f2ed;
+        color: #5d4e37;
+    }
+    
+    /* Forms */
+    .stSelectbox > div > div {
+        background-color: #ffffff;
+        border: 1px solid #d4c4a8;
+    }
+    
+    .stTextInput > div > div > input {
+        background-color: #ffffff;
+        border: 1px solid #d4c4a8;
+    }
+    
+    .stTextArea > div > div > textarea {
+        background-color: #ffffff;
+        border: 1px solid #d4c4a8;
+    }
+    
+    /* Success/Error messages */
+    .stSuccess {
+        background-color: #f0f8f0;
+        border: 1px solid #90c695;
+    }
+    
+    .stError {
+        background-color: #fdf2f2;
+        border: 1px solid #e6a8a8;
+    }
+    
+    .stInfo {
+        background-color: #f0f4f8;
+        border: 1px solid #a8c8e6;
+    }
+    
+    /* Progress bars */
+    .stProgress > div > div > div {
+        background-color: #8b7355;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -173,7 +268,7 @@ def make_api_request(endpoint, method="GET", data=None, params=None):
             st.warning(f"API Error: {response.status_code} - Using demo data")
             return get_fallback_data(endpoint)
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        st.info("🔄 Using demo data - API not available")
+        st.info("Using demo data - API not available")
         return get_fallback_data(endpoint)
     except Exception as e:
         st.warning(f"Error: {str(e)} - Using demo data")
@@ -232,18 +327,18 @@ def get_priority_color(priority):
     }
     return colors.get(priority, "#6c757d")
 
-def get_task_type_emoji(task_type):
-    """Get emoji for task type"""
-    emojis = {
-        "feature": "⭐",
-        "bug": "🐛",
-        "documentation": "📖",
-        "research": "🔍",
-        "meeting": "🤝",
-        "review": "👀",
-        "deployment": "🚀"
+def get_task_type_label(task_type):
+    """Get professional label for task type"""
+    labels = {
+        "feature": "[FEATURE]",
+        "bug": "[BUG]",
+        "documentation": "[DOCS]",
+        "research": "[RESEARCH]",
+        "meeting": "[MEETING]",
+        "review": "[REVIEW]",
+        "deployment": "[DEPLOY]"
     }
-    return emojis.get(task_type, "📝")
+    return labels.get(task_type, "[TASK]")
 
 def display_task_card(task, show_move_buttons=False, integration_id=None):
     """Display a task card with styling"""
@@ -253,18 +348,18 @@ def display_task_card(task, show_move_buttons=False, integration_id=None):
         st.markdown(f"""
         <div class="task-card {priority_class}">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <strong>{get_task_type_emoji(task['task_type'])} {task['title']}</strong>
-                <span style="background-color: {get_priority_color(task['priority'])}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">
+                <strong>{get_task_type_label(task['task_type'])} {task['title']}</strong>
+                <span style="background-color: {get_priority_color(task['priority'])}; color: white; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600;">
                     {task['priority'].upper()}
                 </span>
             </div>
-            <p style="margin: 8px 0; color: #666;">{task['description']}</p>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #888;">
-                <span>👤 {task['assigned_to'] or 'Unassigned'}</span>
-                <span>📊 {task['story_points'] or 0} pts</span>
+            <p style="margin: 10px 0; color: #5d4e37; line-height: 1.4;">{task['description']}</p>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #8b7355;">
+                <span><strong>Assigned:</strong> {task['assigned_to'] or 'Unassigned'}</span>
+                <span><strong>Points:</strong> {task['story_points'] or 0}</span>
             </div>
-            <div style="margin-top: 5px;">
-                {"".join([f'<span style="background-color: #e9ecef; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-right: 4px;">#{tag}</span>' for tag in task['tags']])}
+            <div style="margin-top: 8px;">
+                {"".join([f'<span style="background-color: #e8e2d5; color: #5d4e37; padding: 2px 8px; border-radius: 4px; font-size: 10px; margin-right: 6px; font-weight: 500;">#{tag}</span>' for tag in task['tags']])}
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -272,13 +367,13 @@ def display_task_card(task, show_move_buttons=False, integration_id=None):
         if show_move_buttons and integration_id:
             col1, col2, col3 = st.columns(3)
             with col1:
-                if st.button(f"⬅️ Move", key=f"move_left_{task['id']}", disabled=True):
+                if st.button("← Previous", key=f"move_left_{task['id']}", disabled=True):
                     st.info("Task movement disabled in demo mode")
             with col2:
-                if st.button(f"ℹ️ Details", key=f"details_{task['id']}"):
+                if st.button("View Details", key=f"details_{task['id']}"):
                     show_task_details(task)
             with col3:
-                if st.button(f"➡️ Move", key=f"move_right_{task['id']}", disabled=True):
+                if st.button("Next →", key=f"move_right_{task['id']}", disabled=True):
                     st.info("Task movement disabled in demo mode")
 
 def move_task_left(integration_id, task_id, current_status):
@@ -313,12 +408,12 @@ def move_task_right(integration_id, task_id, current_status):
 
 def show_task_details(task):
     """Show detailed task information in a modal"""
-    with st.expander(f"📋 Task Details: {task['title']}", expanded=True):
+    with st.expander(f"Task Details: {task['title']}", expanded=True):
         col1, col2 = st.columns(2)
         
         with col1:
             st.write(f"**ID:** {task['id']}")
-            st.write(f"**Type:** {get_task_type_emoji(task['task_type'])} {task['task_type'].title()}")
+            st.write(f"**Type:** {get_task_type_label(task['task_type'])} {task['task_type'].title()}")
             st.write(f"**Priority:** {task['priority'].title()}")
             st.write(f"**Status:** {task['kanban_status'].replace('_', ' ').title()}")
             
@@ -340,7 +435,7 @@ def show_task_details(task):
 
 def dashboard_page():
     """Main dashboard page"""
-    st.title("📊 Workflow Dashboard")
+    st.title("Workflow Dashboard")
     
     try:
         # Get dashboard data
@@ -383,7 +478,7 @@ def dashboard_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.subheader("📈 Stage Distribution")
+        st.subheader("Stage Distribution")
         try:
             stage_data = dashboard_data['stage_distribution']
             # Filter out zero values
@@ -401,7 +496,7 @@ def dashboard_page():
             st.error(f"Error creating stage chart: {str(e)}")
     
     with col2:
-        st.subheader("📋 Kanban Statistics")
+        st.subheader("Kanban Statistics")
         kanban_data = dashboard_data['kanban_statistics']
         if any(kanban_data.values()):
             try:
@@ -428,7 +523,7 @@ def dashboard_page():
             st.info("No Kanban data available")
     
     # Recent Updates
-    st.subheader("🔄 Recent Updates")
+    st.subheader("Recent Updates")
     recent_updates = dashboard_data.get('recent_updates', [])
     
     for update in recent_updates:
@@ -446,7 +541,7 @@ def dashboard_page():
 
 def kanban_board_page():
     """Kanban board page"""
-    st.title("📋 Kanban Board")
+    st.title("Kanban Board")
     
     # Get integrations
     integrations = make_api_request("/integrations")
@@ -480,7 +575,7 @@ def kanban_board_page():
     if not kanban_data:
         return
     
-    st.subheader(f"🎯 {kanban_data['integration_name']}")
+    st.subheader(f"Project: {kanban_data['integration_name']}")
     
     # Summary metrics
     col1, col2, col3 = st.columns(3)
@@ -497,13 +592,13 @@ def kanban_board_page():
     # Kanban columns
     columns = kanban_data['columns']
     column_names = {
-        'backlog': '📝 Backlog',
-        'todo': '📋 To Do', 
-        'in_progress': '⚡ In Progress',
-        'in_review': '👀 In Review',
-        'testing': '🧪 Testing',
-        'done': '✅ Done',
-        'blocked': '🚫 Blocked'
+        'backlog': 'Backlog',
+        'todo': 'To Do', 
+        'in_progress': 'In Progress',
+        'in_review': 'In Review',
+        'testing': 'Testing',
+        'done': 'Done',
+        'blocked': 'Blocked'
     }
     
     # Display columns in a grid
@@ -520,7 +615,7 @@ def kanban_board_page():
 
 def integrations_page():
     """Integrations management page"""
-    st.title("🤝 Integrations")
+    st.title("Integration Projects")
     
     # Get integrations
     integrations = make_api_request("/integrations")
@@ -529,7 +624,7 @@ def integrations_page():
     
     # Display integrations
     for integration in integrations:
-        with st.expander(f"🏢 {integration['name']} - {integration['company']}", expanded=False):
+        with st.expander(f"{integration['name']} - {integration['company']}", expanded=False):
             col1, col2 = st.columns([2, 1])
             
             with col1:
@@ -567,8 +662,8 @@ def integrations_page():
 
 def add_task_page():
     """Add new task page"""
-    st.title("➕ Add New Task")
-    st.info("📊 Demo Mode - Task creation is simulated for demonstration")
+    st.title("Add New Task")
+    st.info("Demo Mode - Task creation is simulated for demonstration")
     
     # Get integrations
     integrations = make_api_request("/integrations")
@@ -630,12 +725,12 @@ def add_task_page():
                                         method="POST", data=task_data)
                 
                 if result:
-                    st.success(f"✅ Task '{title}' created successfully!")
+                    st.success(f"Task '{title}' created successfully!")
                     st.json(result)
 
 def analytics_page():
     """Analytics and reporting page"""
-    st.title("📈 Analytics")
+    st.title("Analytics & Reporting")
     
     try:
         # Get dashboard and sprint data
@@ -651,7 +746,7 @@ def analytics_page():
     
     # Sprint Analytics
     if sprints_data:
-        st.subheader("🏃‍♂️ Sprint Analytics")
+        st.subheader("Sprint Performance")
         
         sprint_df = pd.DataFrame([
             {
@@ -692,7 +787,7 @@ def analytics_page():
             st.info("No sprint data available")
     
     # Priority Distribution
-    st.subheader("⚡ Priority Distribution")
+    st.subheader("Priority Distribution")
     try:
         priority_data = dashboard_data['priority_statistics']
         
@@ -734,7 +829,7 @@ def analytics_page():
             st.info("Priority data unavailable")
     
     # Story Points Progress
-    st.subheader("📊 Story Points Progress")
+    st.subheader("Story Points Progress")
     story_points = dashboard_data['story_points']
     
     col1, col2, col3 = st.columns(3)
@@ -753,25 +848,25 @@ def analytics_page():
 
 def main():
     """Main Streamlit app"""
-    st.sidebar.title("🚀 Workflow Management")
+    st.sidebar.title("Workflow Management System")
     
     # Check API connection
     health_check = make_api_request("/healthz")
     if health_check and health_check.get("status") != "demo":
-        st.sidebar.success("✅ API Connected")
+        st.sidebar.success("API Connected")
         api_mode = "live"
     else:
-        st.sidebar.info("📊 Demo Mode")
+        st.sidebar.info("Demo Mode")
         st.sidebar.caption("Using sample data for demonstration")
         api_mode = "demo"
     
     # Navigation
     pages = {
-        "📊 Dashboard": dashboard_page,
-        "📋 Kanban Board": kanban_board_page,
-        "🤝 Integrations": integrations_page,
-        "➕ Add Task": add_task_page,
-        "📈 Analytics": analytics_page
+        "Dashboard": dashboard_page,
+        "Kanban Board": kanban_board_page,
+        "Integration Projects": integrations_page,
+        "Add Task": add_task_page,
+        "Analytics": analytics_page
     }
     
     selected_page = st.sidebar.selectbox("Navigate to:", list(pages.keys()))
@@ -779,10 +874,11 @@ def main():
     # API Status in sidebar
     st.sidebar.markdown("---")
     if api_mode == "live":
-        st.sidebar.markdown("### 📡 API Status")
+        st.sidebar.markdown("### API Status")
         st.sidebar.write(f"**Server Time:** {health_check.get('timestamp', 'Unknown')}")
     else:
-        st.sidebar.markdown("### 📊 Demo Mode")
+        st.sidebar.markdown("### System Status")
+        st.sidebar.write("**Mode:** Demo")
         st.sidebar.write("**Data:** Sample workflow data")
         st.sidebar.write("**Features:** Full functionality demo")
         st.sidebar.caption("To use with live data, connect to FastAPI backend")
