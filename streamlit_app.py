@@ -342,9 +342,14 @@ def dashboard_page():
     """Main dashboard page"""
     st.title("📊 Workflow Dashboard")
     
-    # Get dashboard data
-    dashboard_data = make_api_request("/dashboard")
-    if not dashboard_data:
+    try:
+        # Get dashboard data
+        dashboard_data = make_api_request("/dashboard")
+        if not dashboard_data:
+            st.error("Unable to load dashboard data")
+            return
+    except Exception as e:
+        st.error(f"Error loading dashboard: {str(e)}")
         return
     
     # Key Metrics
@@ -379,35 +384,48 @@ def dashboard_page():
     
     with col1:
         st.subheader("📈 Stage Distribution")
-        stage_data = dashboard_data['stage_distribution']
-        if any(stage_data.values()):
-            fig = px.pie(
-                values=list(stage_data.values()),
-                names=[name.title() for name in stage_data.keys()],
-                title="Integrations by Stage"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+        try:
+            stage_data = dashboard_data['stage_distribution']
+            # Filter out zero values
+            filtered_stage_data = {k: v for k, v in stage_data.items() if v > 0}
+            if filtered_stage_data:
+                fig = px.pie(
+                    values=list(filtered_stage_data.values()),
+                    names=[name.title() for name in filtered_stage_data.keys()],
+                    title="Integrations by Stage"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No stage data available")
+        except Exception as e:
+            st.error(f"Error creating stage chart: {str(e)}")
     
     with col2:
         st.subheader("📋 Kanban Statistics")
         kanban_data = dashboard_data['kanban_statistics']
         if any(kanban_data.values()):
-            # Create DataFrame for better handling
-            import pandas as pd
-            df = pd.DataFrame([
-                {'Column': k.replace('_', ' ').title(), 'Tasks': v} 
-                for k, v in kanban_data.items()
-            ])
-            
-            fig = px.bar(
-                df,
-                x='Column',
-                y='Tasks',
-                title="Tasks by Kanban Column",
-                labels={'Column': 'Kanban Column', 'Tasks': 'Number of Tasks'}
-            )
-            fig.update_xaxis(tickangle=45)
-            st.plotly_chart(fig, use_container_width=True)
+            try:
+                # Create DataFrame for better handling
+                columns = [k.replace('_', ' ').title() for k in kanban_data.keys()]
+                values = list(kanban_data.values())
+                
+                fig = px.bar(
+                    x=columns,
+                    y=values,
+                    title="Tasks by Kanban Column",
+                    labels={'x': 'Kanban Column', 'y': 'Number of Tasks'}
+                )
+                fig.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating chart: {str(e)}")
+                # Fallback: simple table
+                st.table(pd.DataFrame([
+                    {'Column': k.replace('_', ' ').title(), 'Tasks': v} 
+                    for k, v in kanban_data.items()
+                ]))
+        else:
+            st.info("No Kanban data available")
     
     # Recent Updates
     st.subheader("🔄 Recent Updates")
