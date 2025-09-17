@@ -19,7 +19,8 @@ st.set_page_config(
 )
 
 # API Configuration
-API_BASE_URL = "http://localhost:8000"
+import os
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 # Custom CSS for better styling
 st.markdown("""
@@ -65,30 +66,160 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def get_mock_data():
+    """Return mock data when API is not available"""
+    return {
+        "dashboard": {
+            "total_integrations": 4,
+            "stage_distribution": {"build": 2, "testing": 2, "research": 0, "launch": 0, "maintenance": 0},
+            "task_statistics": {"pending": 3, "in_progress": 5, "completed": 2, "blocked": 0},
+            "kanban_statistics": {"backlog": 1, "todo": 2, "in_progress": 3, "in_review": 1, "testing": 1, "done": 2, "blocked": 0},
+            "priority_statistics": {"low": 0, "medium": 3, "high": 7, "critical": 0},
+            "high_priority_tasks": 5,
+            "overdue_tasks": 0,
+            "story_points": {"total": 33, "completed": 4, "remaining": 29},
+            "recent_updates": [
+                {"integration": "F&I Express / Cox Automotive", "updated_at": "2025-09-17T14:07:35.525638+00:00", "stage": "testing", "active_tasks": 1},
+                {"integration": "Provider Exchange Network (PEN)", "updated_at": "2025-09-17T14:07:35.525628+00:00", "stage": "testing", "active_tasks": 2},
+                {"integration": "MenuMetric Integration", "updated_at": "2025-09-17T14:07:35.525614+00:00", "stage": "build", "active_tasks": 0},
+                {"integration": "Vision Dealer API Integration", "updated_at": "2025-09-17T14:07:35.525584+00:00", "stage": "build", "active_tasks": 2}
+            ]
+        },
+        "integrations": [
+            {
+                "id": "vision-dealer",
+                "name": "Vision Dealer API Integration", 
+                "company": "Vision Dealer Solutions",
+                "stage": "build",
+                "description": "API integration with Vision Dealer's new system, similar to PCMI specs",
+                "contacts": [{"name": "Brandon Steup", "email": "brandon.steup@visiondealersolutions.com", "role": "Business Analyst", "company": "Vision Dealer Solutions"}],
+                "tasks": [
+                    {"id": "vd-001", "title": "Confirm latest communication status", "description": "Confirm the status of the latest communication with Brandon", "status": "in_progress", "kanban_status": "in_progress", "priority": "high", "task_type": "meeting", "assigned_to": "Ramisa", "story_points": 2, "sprint": "Sprint 1", "tags": ["communication", "status-check"]},
+                    {"id": "vd-002", "title": "Deliver API documentation", "description": "Share API docs, test dealers, and products with Vision Dealer", "status": "in_progress", "kanban_status": "in_progress", "priority": "high", "task_type": "documentation", "assigned_to": "Sona Team", "story_points": 5, "sprint": "Sprint 1", "tags": ["documentation", "delivery"]},
+                    {"id": "vd-003", "title": "Schedule follow-up meeting with Brandon", "description": "Set up regular check-ins to track progress", "status": "pending", "kanban_status": "todo", "priority": "medium", "task_type": "meeting", "assigned_to": "Ramisa", "story_points": 1, "sprint": "Sprint 1", "tags": ["meeting", "follow-up"]}
+                ],
+                "next_steps": ["Confirm current stage", "Deliver API documentation", "Schedule follow-up meeting"]
+            },
+            {
+                "id": "menumetric",
+                "name": "MenuMetric Integration",
+                "company": "MenuMetric", 
+                "stage": "build",
+                "description": "Menu integration requiring eligibility guidelines and API documentation",
+                "contacts": [{"name": "Hannah Honeybrook", "email": "hannah@menumetric.com", "role": "Integration Lead", "company": "MenuMetric"}],
+                "tasks": [
+                    {"id": "mm-001", "title": "Provide Eligibility Guidelines", "description": "Deliver eligibility guidelines to Hannah's team", "status": "pending", "kanban_status": "todo", "priority": "high", "task_type": "documentation", "assigned_to": "Sona Team", "story_points": 3, "sprint": "Sprint 1", "tags": ["guidelines", "delivery"]},
+                    {"id": "mm-002", "title": "Provide Testing Dealer ID", "description": "Testing Dealer ID with ALL products enrolled", "status": "completed", "kanban_status": "done", "priority": "high", "task_type": "feature", "assigned_to": "Sona Team", "story_points": 2, "sprint": "Sprint 1", "tags": ["testing", "dealer-setup"]},
+                    {"id": "mm-003", "title": "List of industries with products", "description": "Provide list of industries with associated products", "status": "pending", "kanban_status": "backlog", "priority": "medium", "task_type": "documentation", "assigned_to": "Sona Team", "story_points": 2, "sprint": "Sprint 2", "tags": ["documentation", "products"]}
+                ],
+                "next_steps": ["Complete delivery of remaining items", "Begin direct coordination", "Follow up on testing progress"]
+            },
+            {
+                "id": "pen",
+                "name": "Provider Exchange Network (PEN)",
+                "company": "Provider Exchange Network",
+                "stage": "testing", 
+                "description": "Ongoing nullable fields support and API updates",
+                "contacts": [
+                    {"name": "Jason Malak", "email": "jmalak@providerexchangenetwork.com", "phone": "313-749-0469", "role": "Integration Manager", "company": "Provider Exchange Network"},
+                    {"name": "Carl Ciaramitaro", "email": "cciaramitaro@providerexchangenetwork.com", "phone": "313-749-0943", "role": "", "company": "Provider Exchange Network"}
+                ],
+                "tasks": [
+                    {"id": "pen-001", "title": "Validate BETA changes", "description": "Confirm BETA behavior for nullable/optional fields", "status": "in_progress", "kanban_status": "testing", "priority": "high", "task_type": "feature", "assigned_to": "PEN Team", "story_points": 5, "sprint": "Sprint 1", "tags": ["testing", "validation", "beta"]},
+                    {"id": "pen-002", "title": "CreateContract nullable support", "description": "Complete CreateContract nullable support implementation", "status": "in_progress", "kanban_status": "in_progress", "priority": "high", "task_type": "feature", "assigned_to": "Sona Team", "story_points": 8, "sprint": "Sprint 1", "tags": ["development", "nullable-fields"]}
+                ],
+                "next_steps": ["Track delivery of latest API documentation", "Validate CreateContract once deployed", "Confirm all nullable field behavior"]
+            },
+            {
+                "id": "fi-express",
+                "name": "F&I Express / Cox Automotive",
+                "company": "Cox Automotive",
+                "stage": "testing",
+                "description": "Integration with Cox Automotive team, addressing environment and token setup", 
+                "contacts": [
+                    {"name": "Katie Rupp", "email": "Kathrine.Rupp@coxautoinc.com", "role": "Technical Customer Care Analyst I – API", "company": "Cox Automotive"},
+                    {"name": "Stephany Spiker", "email": "Stephany.Spiker@coxautoinc.com", "role": "", "company": "Cox Automotive"},
+                    {"name": "Kerri Massura", "email": "Kerri.massura@coxautoinc.com", "role": "", "company": "Cox Automotive"}
+                ],
+                "tasks": [
+                    {"id": "fi-001", "title": "Confirm environment/token setup", "description": "Clarify if one token used for both NonProd and Prod environments", "status": "in_progress", "kanban_status": "in_review", "priority": "medium", "task_type": "research", "assigned_to": "Katie Rupp", "story_points": 3, "sprint": "Sprint 1", "tags": ["environment", "authentication"]},
+                    {"id": "fi-002", "title": "Resolve website maintenance issues", "description": "Ensure BETA environment is accessible after maintenance", "status": "completed", "kanban_status": "done", "priority": "high", "task_type": "bug", "assigned_to": "Sona Team", "story_points": 2, "sprint": "Sprint 1", "tags": ["maintenance", "environment"]}
+                ],
+                "next_steps": ["Confirm token setup requirements", "Provide availability timeline post-maintenance", "Send revised Coverage Surcharges documentation"]
+            }
+        ],
+        "sprints": {
+            "Sprint 1": {"total_tasks": 9, "completed_tasks": 2, "total_story_points": 31, "completed_story_points": 4},
+            "Sprint 2": {"total_tasks": 2, "completed_tasks": 0, "total_story_points": 5, "completed_story_points": 0}
+        }
+    }
+
 def make_api_request(endpoint, method="GET", data=None, params=None):
-    """Make API request with error handling"""
+    """Make API request with error handling and fallback to mock data"""
     try:
         url = f"{API_BASE_URL}{endpoint}"
         if method == "GET":
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=2)
         elif method == "POST":
-            response = requests.post(url, json=data, params=params)
+            response = requests.post(url, json=data, params=params, timeout=2)
         elif method == "PUT":
-            response = requests.put(url, json=data, params=params)
+            response = requests.put(url, json=data, params=params, timeout=2)
         elif method == "DELETE":
-            response = requests.delete(url)
+            response = requests.delete(url, timeout=2)
         
         if response.status_code == 200:
             return response.json()
         else:
-            st.error(f"API Error: {response.status_code} - {response.text}")
-            return None
-    except requests.exceptions.ConnectionError:
-        st.error("🔌 Cannot connect to API. Please ensure the FastAPI server is running on http://localhost:8000")
-        st.info("Run: `make dev` or `python3 -m src.app` in your project directory")
-        return None
+            st.warning(f"API Error: {response.status_code} - Using demo data")
+            return get_fallback_data(endpoint)
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        st.info("🔄 Using demo data - API not available")
+        return get_fallback_data(endpoint)
     except Exception as e:
-        st.error(f"Error: {str(e)}")
+        st.warning(f"Error: {str(e)} - Using demo data")
+        return get_fallback_data(endpoint)
+
+def get_fallback_data(endpoint):
+    """Return appropriate mock data based on endpoint"""
+    mock_data = get_mock_data()
+    
+    if endpoint == "/healthz":
+        return {"status": "demo", "timestamp": datetime.now().isoformat()}
+    elif endpoint == "/dashboard":
+        return mock_data["dashboard"]
+    elif endpoint == "/integrations":
+        return mock_data["integrations"]
+    elif endpoint == "/sprints":
+        return mock_data["sprints"]
+    elif endpoint.startswith("/integrations/") and endpoint.endswith("/kanban"):
+        # Extract integration ID from endpoint
+        integration_id = endpoint.split("/")[2]
+        integration = next((i for i in mock_data["integrations"] if i["id"] == integration_id), mock_data["integrations"][0])
+        
+        # Organize tasks by Kanban status
+        columns = {
+            "backlog": [],
+            "todo": [],
+            "in_progress": [],
+            "in_review": [],
+            "testing": [],
+            "done": [],
+            "blocked": []
+        }
+        
+        total_story_points = 0
+        for task in integration["tasks"]:
+            columns[task["kanban_status"]].append(task)
+            total_story_points += task.get("story_points", 0)
+        
+        return {
+            "integration_id": integration_id,
+            "integration_name": integration["name"],
+            "columns": columns,
+            "total_tasks": len(integration["tasks"]),
+            "total_story_points": total_story_points
+        }
+    else:
         return None
 
 def get_priority_color(priority):
@@ -141,14 +272,14 @@ def display_task_card(task, show_move_buttons=False, integration_id=None):
         if show_move_buttons and integration_id:
             col1, col2, col3 = st.columns(3)
             with col1:
-                if st.button(f"⬅️ Move", key=f"move_left_{task['id']}"):
-                    move_task_left(integration_id, task['id'], task['kanban_status'])
+                if st.button(f"⬅️ Move", key=f"move_left_{task['id']}", disabled=True):
+                    st.info("Task movement disabled in demo mode")
             with col2:
                 if st.button(f"ℹ️ Details", key=f"details_{task['id']}"):
                     show_task_details(task)
             with col3:
-                if st.button(f"➡️ Move", key=f"move_right_{task['id']}"):
-                    move_task_right(integration_id, task['id'], task['kanban_status'])
+                if st.button(f"➡️ Move", key=f"move_right_{task['id']}", disabled=True):
+                    st.info("Task movement disabled in demo mode")
 
 def move_task_left(integration_id, task_id, current_status):
     """Move task to previous column"""
@@ -411,6 +542,7 @@ def integrations_page():
 def add_task_page():
     """Add new task page"""
     st.title("➕ Add New Task")
+    st.info("📊 Demo Mode - Task creation is simulated for demonstration")
     
     # Get integrations
     integrations = make_api_request("/integrations")
@@ -562,11 +694,13 @@ def main():
     
     # Check API connection
     health_check = make_api_request("/healthz")
-    if health_check:
+    if health_check and health_check.get("status") != "demo":
         st.sidebar.success("✅ API Connected")
+        api_mode = "live"
     else:
-        st.sidebar.error("❌ API Disconnected")
-        st.sidebar.info("Start the API server with: `make dev`")
+        st.sidebar.info("📊 Demo Mode")
+        st.sidebar.caption("Using sample data for demonstration")
+        api_mode = "demo"
     
     # Navigation
     pages = {
@@ -580,10 +714,15 @@ def main():
     selected_page = st.sidebar.selectbox("Navigate to:", list(pages.keys()))
     
     # API Status in sidebar
-    if health_check:
-        st.sidebar.markdown("---")
+    st.sidebar.markdown("---")
+    if api_mode == "live":
         st.sidebar.markdown("### 📡 API Status")
         st.sidebar.write(f"**Server Time:** {health_check.get('timestamp', 'Unknown')}")
+    else:
+        st.sidebar.markdown("### 📊 Demo Mode")
+        st.sidebar.write("**Data:** Sample workflow data")
+        st.sidebar.write("**Features:** Full functionality demo")
+        st.sidebar.caption("To use with live data, connect to FastAPI backend")
     
     # Run selected page
     pages[selected_page]()
